@@ -1,0 +1,20 @@
+language: python
+
+python:
+  - 3.6
+  - 3.7
+  - 3.8
+
+before_install:
+  - python -m pip install -U pip
+  - python -m pip --version
+
+install:
+  - python -m pip install -r requirements.txt
+  - python -m pip install .
+
+script:
+  - travis_wait 30 python -m pytest --cov --cov-report term-missing
+
+after_success:
+  - codecov
