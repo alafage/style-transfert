@@ -2,4 +2,4 @@ from main import main
 
 
 def test_main() -> None:
-    assert "Hello World!" == main()
+    assert "This is a python project template!" == main()

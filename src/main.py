@@ -2,4 +2,4 @@
 
 
 def main() -> str:
-    return "Hello World!"
+    return "This is a python project template!"
