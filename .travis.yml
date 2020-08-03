@@ -18,4 +18,4 @@ script:
   - travis_wait 30 python -m pytest --cov --cov-report term-missing
 
 after_success:
-  - codecov
+  - codecov -t 0e8e35b7-a28a-4ab8-a1a5-e6f59dfdf573
