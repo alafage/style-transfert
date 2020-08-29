@@ -37,7 +37,7 @@ def load(
         data_img = Image.open(data).convert("RGB")
         if data_img is not None:
             if size is None:
-                size = np.array(data).shape[:2]
+                size = np.array(data_img).shape[:2]
             transforms = T.Compose([T.Resize(size), T.ToTensor()])
             return transforms(data_img)[:3, :, :].unsqueeze(0)
         else:
