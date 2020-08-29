@@ -7,5 +7,11 @@ setup(
     author_email="adrienlafage@outlook.com",
     description="A toolbox to apply easily style transfert methods",
     packages=find_packages(),
-    install_requires=["torch", "torchvision"],
+    install_requires=[
+        "torch",
+        "torchvision",
+        "numpy",
+        "pillow",
+        "typing_extensions",
+    ],
 )

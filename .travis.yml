@@ -11,7 +11,6 @@ before_install:
 
 install:
   - python -m pip install --upgrade codecov pytest-cov pytest
-  - python -m pip install -r requirements.txt
   - python -m pip install .
 
 script:
