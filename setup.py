@@ -13,5 +13,6 @@ setup(
         "numpy",
         "pillow",
         "typing_extensions",
+        "matplotlib",
     ],
 )
