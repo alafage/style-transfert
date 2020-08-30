@@ -1,6 +1,7 @@
 # coding: utf-8
 # fmt: off
 import warnings
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ import torch.optim as optim
 import torchvision.models as M
 from PIL import Image
 
-from .utils import load, tensor_to_ndarray
+from .utils import gram_matrix, load, unnormalize, unscale
 
 # fmt: on
 
@@ -23,6 +24,14 @@ class StyleTRF:
         self,
         content_weight: float = 1.0,
         style_weight: float = 1e6,
+        layers: Dict[str, str] = {
+            "0": "conv1_1",
+            "5": "conv2_1",
+            "10": "conv3_1",
+            "19": "conv4_1",
+            "21": "conv4_2",  # content representation layer
+            "28": "conv5_1",
+        },
         style_weights: Dict[str, float] = {
             "conv1_1": 1.0,
             "conv2_1": 0.8,
@@ -30,13 +39,14 @@ class StyleTRF:
             "conv4_1": 0.3,
             "conv5_1": 0.1,
         },
+        model_features: Any = M.vgg19(pretrained=True).features,
     ) -> None:
         self.device = torch.device(
             "cuda" if torch.cuda.is_available() else "cpu"
         )
         # get the "features" portion of VGG19 (we will not need the
         # "classifier" portion)
-        self.vgg = M.vgg19(pretrained=True).features
+        self.vgg = model_features
         # freeze all VGG parameters since we're only optimizing the
         # target image
         for param in self.vgg.parameters():
@@ -44,22 +54,9 @@ class StyleTRF:
         # move the model to GPU, if available
         self.vgg.to(self.device)
 
-        self.layers = {
-            "0": "conv1_1",
-            "5": "conv2_1",
-            "10": "conv3_1",
-            "19": "conv4_1",
-            "21": "conv4_2",  # content representation layer
-            "28": "conv5_1",
-        }
+        self.layers = layers
 
-        self.style_weights = {
-            "conv1_1": 1.0,
-            "conv2_1": 0.8,
-            "conv3_1": 0.5,
-            "conv4_1": 0.3,
-            "conv5_1": 0.1,
-        }
+        self.style_weights = style_weights
 
         self.content_weight = content_weight  # alpha
         self.style_weight = style_weight  # beta
@@ -120,25 +117,12 @@ class StyleTRF:
 
         return features
 
-    def gram_matrix(self, tensor: torch.Tensor):
-        """ Calculate the Gram Matrix of a given tensor
-            Gram Matrix: https://en.wikipedia.org/wiki/Gramian_matrix
-        """
-
-        # get the batch_size, depth, height, and width of the Tensor
-        # reshape it, so we're multiplying the features for each channel
-        # calculate the gram matrix
-        _, d, h, w = tensor.size()
-        tensor = tensor.view(d, h * w)
-        gram = torch.mm(tensor, tensor.t())
-
-        return gram
-
     def train(
         self,
         iterations: int = 1000,
         out_path: Optional[str] = None,
         save_every: Optional[int] = None,
+        optimizer_algo: Any = optim.Adam,
     ):
         """ TODO
         Parameters
@@ -172,7 +156,7 @@ class StyleTRF:
             # calculate the gram matrices for each layer of our style
             # representation
             style_grams = {
-                layer: self.gram_matrix(style_features[layer])
+                layer: gram_matrix(style_features[layer])
                 for layer in style_features
             }
 
@@ -186,13 +170,13 @@ class StyleTRF:
             )
 
             # optimizer
-            optimizer = optim.Adam([self.target], lr=0.003)
+            optimizer = optimizer_algo([self.target], lr=0.003)
             # decide how many iterations to update your image
             steps = iterations
 
             for ii in range(1, steps + 1):
 
-                # TODO: get the features from your target image
+                # get the features from your target image
                 # Then calculate the content loss
                 target_features = self.get_features(self.target)
                 content_loss = torch.mean(
@@ -210,7 +194,7 @@ class StyleTRF:
                     _, d, h, w = target_feature.shape
 
                     # Calculate the target gram matrix
-                    target_gram = self.gram_matrix(target_feature)
+                    target_gram = gram_matrix(target_feature)
 
                     # Get the "style" style representation
                     style_gram = style_grams[layer]
@@ -247,22 +231,28 @@ class StyleTRF:
                 "You need to provide both content and style images."
             )
 
-    def save_target(self, path: str):
-        """ TODO
+    def save_target(self, path: Union[str, Path]):
+        """ Save target image into a file at the given path.
+        Parameters
+        ----------
+        path: str, Path
+            Path of the target image save.
         """
         if isinstance(self.target, torch.Tensor):
-            array = tensor_to_ndarray(self.target) * 255
+            array = unscale(unnormalize(self.target))
             img = Image.fromarray(np.unint8(array))
             img.save(path)
         else:
-            raise Exception("No target image to save.")
+            raise TypeError(
+                f"expected Torch Tensor type, got {type(self.target)}"
+            )
 
     def content_style_plotter(self):
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
 
         if isinstance(self.content, torch.Tensor):
-            ax1.imshow(tensor_to_ndarray(self.content))
+            ax1.imshow(unscale(unnormalize(self.content)))
         if isinstance(self.style, torch.Tensor):
-            ax2.imshow(tensor_to_ndarray(self.style))
+            ax2.imshow(unscale(unnormalize(self.style)))
 
         plt.show()
