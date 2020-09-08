@@ -44,3 +44,14 @@ strf.train(iterations=100)
 # Get the target image Torch Tensor.
 target_image = strf.target
 ```
+
+## Visual Example
+
+### Content and style images
+<div>
+    <img src="https://github.com/alafage/style-transfert/blob/master/styletrf/data/content_2.jpg" height="300"/>
+    <img src="https://github.com/alafage/style-transfert/blob/master/styletrf/data/style_1.jpg" height="300"/>
+</div>
+
+### Output image
+<img src="https://github.com/alafage/style-transfert/blob/master/styletrf/out/out_2-1.jpg" height="300"/>
