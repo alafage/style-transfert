@@ -123,7 +123,7 @@ class StyleTRF:
         out_path: Optional[str] = None,
         save_every: Optional[int] = None,
         optimizer_algo: Any = optim.Adam,
-    ):
+    ) -> None:
         """ TODO
         Parameters
         ----------
@@ -131,8 +131,10 @@ class StyleTRF:
             Number of iterations.
         out_path: str, NoneType
             Path where the target image will be saved.
-        save_every: int
+        save_every: int (>0)
             For saving the target image, intermittently.
+        optimizer_algo: Any
+            Optimizer to use to update the target image.
         """
         if out_path is None and save_every is not None:
             msg = (
@@ -165,7 +167,7 @@ class StyleTRF:
             # our *content* image then iteratively change its style
             self.target = (
                 (self.content.clone().requires_grad_(True).to(self.device))
-                if self.target is None
+                if not hasattr(self, "target")
                 else self.target.requires_grad_(True).to(self.device)
             )
 
@@ -231,7 +233,7 @@ class StyleTRF:
                 "You need to provide both content and style images."
             )
 
-    def save_target(self, path: Union[str, Path]):
+    def save_target(self, path: Union[str, Path]) -> None:
         """ Save target image into a file at the given path.
         Parameters
         ----------
@@ -247,7 +249,7 @@ class StyleTRF:
                 f"expected Torch Tensor type, got {type(self.target)}"
             )
 
-    def content_style_plotter(self):
+    def content_style_plotter(self) -> None:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
 
         if isinstance(self.content, torch.Tensor):
