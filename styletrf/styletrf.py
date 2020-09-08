@@ -11,7 +11,7 @@ import torch.optim as optim
 import torchvision.models as M
 from PIL import Image
 
-from .utils import gram_matrix, load, unnormalize, unscale
+from .utils import gram_matrix, load, tensor_to_ndarray
 
 # fmt: on
 
@@ -241,8 +241,9 @@ class StyleTRF:
             Path of the target image save.
         """
         if isinstance(self.target, torch.Tensor):
-            array = unscale(unnormalize(self.target))
-            img = Image.fromarray(np.unint8(array))
+            target_tensor = self.target.to("cpu").clone().detach()
+            target_array = tensor_to_ndarray(target_tensor)
+            img = Image.fromarray(np.uint8(target_array * 255))
             img.save(path)
         else:
             raise TypeError(
@@ -253,8 +254,10 @@ class StyleTRF:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
 
         if isinstance(self.content, torch.Tensor):
-            ax1.imshow(unscale(unnormalize(self.content)))
+            content_tensor = self.content.to("cpu").clone().detach()
+            ax1.imshow(tensor_to_ndarray(content_tensor))
         if isinstance(self.style, torch.Tensor):
-            ax2.imshow(unscale(unnormalize(self.style)))
+            style_tensor = self.style.to("cpu").clone().detach()
+            ax2.imshow(tensor_to_ndarray(style_tensor))
 
         plt.show()

@@ -52,7 +52,7 @@ def load(
                 [
                     T.Resize(size),
                     T.ToTensor(),
-                    T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                    T.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
                 ]
             )
             return transforms(data_img)[:3, :, :].unsqueeze(0)
@@ -68,7 +68,7 @@ def load(
                 T.ToPILImage(),
                 T.Resize(size),
                 T.ToTensor(),
-                T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                T.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
             ]
         )
         return transforms(data)[:3, :, :].unsqueeze(0)
@@ -79,19 +79,14 @@ def load(
         )
 
 
-def unnormalize(tensor: torch.Tensor) -> torch.Tensor:
-    """ TODO
+def tensor_to_ndarray(tensor: torch.Tensor) -> np.ndarray:
+    """ Returns from a scaled and normalized Torch Tensor (1xCxHxW), an
+    unscaled and unnormalized Numpy Array (HxWxC).
     """
-    tensor = tensor.to("cpu").clone().detach()
-    tensor = tensor * torch.tensor([0.5, 0.5, 0.5]) + torch.tensor(
-        [0.5, 0.5, 0.5]
+    array = tensor.numpy().squeeze()
+    array = array.transpose(1, 2, 0)
+    array = array * np.array((0.229, 0.224, 0.225)) + np.array(
+        (0.485, 0.456, 0.406)
     )
-    return tensor
-
-
-def unscale(tensor: torch.Tensor) -> torch.Tensor:
-    """ TODO
-    """
-    tensor = tensor.to("cpu").clone().detach()
-    tensor *= 255
-    return tensor
+    array = array.clip(0, 1)
+    return array
