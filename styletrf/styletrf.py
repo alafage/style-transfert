@@ -93,11 +93,10 @@ class StyleTRF:
             ...
         """
         # Content image loading
-        self.content = load(data=content, size=size)
+        self.content = load(data=content, size=size).to(self.device)
         shape = self.content.shape[-2:]
         # Style image loading
-        self.style = load(data=style, size=shape)
-
+        self.style = load(data=style, size=shape).to(self.device)
         # Target image loading if applicable
         if target is not None:
             self.target = load(data=target, size=shape)
