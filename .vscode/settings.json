@@ -4,5 +4,5 @@
     "python.linting.mypyEnabled": true,
     "python.linting.enabled": true,
     "python.formatting.provider": "black",
-    "python.pythonPath": "/home/eisti/anaconda3/envs/python3.8/bin/python"
+    "python.pythonPath": "C:\\Users\\Shadow\\anaconda3\\envs\\styletrf\\python.exe"
 }

@@ -6,10 +6,11 @@ from typing import Any, Dict, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
+
 import torch
 import torch.optim as optim
 import torchvision.models as M
-from PIL import Image
 
 from .utils import gram_matrix, load, tensor_to_ndarray
 
@@ -220,13 +221,15 @@ class StyleTRF:
                 optimizer.step()
 
                 # display intermediate images and print the loss
-                if ii % 100 == 0:
+                if ii % 50 == 0:
                     print(f"Iteration: {ii} - Total loss: {total_loss.item()}")
                 if isinstance(save_every, int) and isinstance(out_path, str):
                     if ii % save_every == 0:
                         # plt.imshow(tensor_to_ndarray(self.target))
                         self.save_target(out_path)
                         # plt.show()
+            if isinstance(out_path, str):
+                self.save_target(out_path)
         else:
             raise Exception(
                 "You need to provide both content and style images."
